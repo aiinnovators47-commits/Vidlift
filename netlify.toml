@@ -1,50 +1,29 @@
+# Netlify Configuration File
+# This file defines build settings and redirects for Netlify deployment
+
 [build]
-  command = "bash scripts/netlify-build.sh"
+  command = "npm run build"
   publish = ".next"
-  functions = "netlify/functions"
+  environment = { NODE_VERSION = "18" }
 
 [functions]
   directory = "netlify/functions"
-  external_node_modules = ["sharp", "canvas", "@supabase/supabase-js"]
   node_bundler = "esbuild"
 
+# Redirect all requests to the main app
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Environment variables for Netlify deployment
 [template.environment]
   NEXT_PUBLIC_SUPABASE_URL = "Your Supabase URL"
   SUPABASE_SERVICE_ROLE_KEY = "Your Supabase Service Role Key"
-  SMTP_EMAIL = "Your SMTP email"
-  SMTP_PASSWORD = "Your SMTP password/app-specific password"
-  NEXTAUTH_URL = "Your deployed URL"
-  CRON_SECRET = "Your secure cron secret"
-  NEXT_PUBLIC_APP_URL = "Your deployed URL"
-
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
-
-[[plugins]]
-  package = "@netlify/plugin-functions-install-core"
-
-[functions]
-  directory = "netlify/functions"
-  external_node_modules = ["sharp", "canvas", "@supabase/supabase-js"]
-
-# Enable Background Functions (beta)
-[functions."trigger-email-scheduler"]
-  background = true
-
-[functions."hourly-email-scheduler"]
-  background = true
-  schedule = "0 * * * *"  # Run every hour on the hour
-
-# Redirect API routes to serverless functions
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
-  status = 200
-
-# Set up headers for security
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
+  GOOGLE_CLIENT_ID = "Your Google Client ID"
+  GOOGLE_CLIENT_SECRET = "Your Google Client Secret"
+  YOUTUBE_API_KEY = "Your YouTube API Key"
+  GEMINI_API_KEY = "Your Gemini API Key"
+  SMTP_EMAIL = "Your SMTP Email"
+  SMTP_PASSWORD = "Your SMTP Password"
+  CRON_SECRET = "Your Cron Secret"

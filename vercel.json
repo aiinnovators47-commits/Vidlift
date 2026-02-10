@@ -9,7 +9,7 @@
     },
     {
       "path": "/api/challenges/cron/upload-reminder",
-      "schedule": "0 * * * *",
+      "schedule": "0 12 * * *",
       "headers": {
         "Authorization": "Bearer ${CRON_SECRET}"
       }
@@ -23,35 +23,42 @@
     },
     {
       "path": "/api/challenges/cron/daily-check",
-      "schedule": "0 */6 * * *",
+      "schedule": "0 1 * * *",
       "headers": {
         "Authorization": "Bearer ${CRON_SECRET}"
       }
     },
     {
       "path": "/api/challenges/cron/process-notifications", 
-      "schedule": "0 * * * *",
+      "schedule": "0 8 * * *",
       "headers": {
         "Authorization": "Bearer ${CRON_SECRET}"
       }
     },
     {
       "path": "/api/challenge-notifications/cron",
-      "schedule": "0 */4 * * *",
+      "schedule": "0 9 * * *",
       "headers": {
         "Authorization": "Bearer ${CRON_SECRET}"
       }
     },
     {
       "path": "/api/challenge-uploads/auto-detect",
-      "schedule": "0 * * * *",
+      "schedule": "0 10 * * *",
       "headers": {
         "Authorization": "Bearer ${CRON_SECRET}"
       }
     },
     {
       "path": "/api/challenges/send-reminder-emails",
-      "schedule": "0 * * * *",
+      "schedule": "0 11 * * *",
+      "headers": {
+        "Authorization": "Bearer ${CRON_SECRET}"
+      }
+    },
+    {
+      "path": "/api/trigger-email-scheduler",
+      "schedule": "0 13 * * *",
       "headers": {
         "Authorization": "Bearer ${CRON_SECRET}"
       }

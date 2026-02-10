@@ -451,25 +451,25 @@ export default function SharedSidebar({ sidebarOpen, setSidebarOpen, activePage:
 
             {/* Pinterest-style Sidebar */}
             <aside
-                className={`fixed left-0 top-0 bottom-0 flex flex-col shrink-0 bg-white border-r border-gray-100 shadow-xl transform transition-all duration-300 z-50 h-screen ${
+                className={`fixed left-0 top-0 bottom-0 flex flex-col shrink-0 bg-white border-r border-gray-200 shadow-lg transform transition-all duration-300 z-50 h-screen ${
                     sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                 } md:translate-x-0 ${isCollapsed ? 'md:w-20' : 'md:w-64'} w-[80%] max-w-[320px]`}
             >
                 {/* Logo Header at Top */}
-                <div className={`flex items-center justify-between ${isCollapsed ? 'md:justify-center md:px-2 md:py-4' : 'md:p-4'} p-4 border-b border-gray-100`}>
+                <div className={`flex items-center justify-between ${isCollapsed ? 'md:justify-center md:px-2 md:py-4' : 'md:p-4'} p-4 border-b border-gray-200`}>
                     {/* Logo Icon Only (show when collapsed on desktop) */}
-                    <div className={`hidden ${isCollapsed ? 'md:flex' : 'md:hidden'} w-10 h-10 rounded-lg bg-gradient-to-br from-gray-800 to-black flex items-center justify-center shadow-md transition-all duration-300 border border-gray-700 cursor-pointer`}>
+                    <div className={`hidden ${isCollapsed ? 'md:flex' : 'md:hidden'} w-10 h-10 rounded-lg bg-white flex items-center justify-center shadow-md transition-all duration-300 border border-gray-300 cursor-pointer`}>
                       <CrenovaLogo />
                     </div>
-
+                
                     {/* Logo with Text (show when expanded on desktop and on mobile) */}
                     <div className={`${isCollapsed ? 'md:hidden' : 'md:flex'} flex items-center gap-3 cursor-pointer`}>
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-800 to-black flex items-center justify-center shadow-md transition-all duration-300 border border-gray-700">
+                        <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shadow-md transition-all duration-300 border border-gray-300">
                           <CrenovaLogo />
                         </div>
                         <div>
                             <div className="text-base font-bold text-gray-900 tracking-tight">Yt-AI</div>
-                            <div className="text-xs text-gray-500 font-medium">Creator Hub</div>
+                            <div className="text-xs text-gray-600 font-medium">Creator Hub</div>
                         </div>
                     </div>
 
@@ -494,21 +494,21 @@ export default function SharedSidebar({ sidebarOpen, setSidebarOpen, activePage:
                             prefetch={true}
                             onMouseEnter={(e) => { handleMouseEnter(e, link.label); try { router.prefetch(link.href); } catch(e) {} }}
                             onFocus={(e) => { handleMouseEnter(e, link.label); try { router.prefetch(link.href); } catch(e) {} }}
-                            className={`flex items-center gap-3 ${isCollapsed ? 'md:justify-center md:px-2 md:py-2' : 'md:px-3 md:py-2'} px-3 py-2 rounded-xl font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-1 ${
+                            className={`flex items-center gap-3 ${isCollapsed ? 'md:justify-center md:px-2 md:py-2' : 'md:px-3 md:py-2'} px-3 py-2 rounded-xl font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-1 ${
                                 activePage === link.id
-                                    ? 'bg-gray-800 text-white shadow-sm'
-                                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                                    ? 'bg-blue-600 text-white shadow-sm'
+                                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                             }`}
                             title={link.label}
                             onMouseLeave={handleMouseLeave}
                             onBlur={handleMouseLeave}
                         >
-                            <div className={`w-10 h-10 flex items-center justify-center rounded-lg flex-shrink-0 transition-all ${activePage === link.id ? 'bg-gray-800 text-white shadow-md' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>
+                            <div className={`w-10 h-10 flex items-center justify-center rounded-lg flex-shrink-0 transition-all ${activePage === link.id ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
                                 <link.icon className="w-5 h-5" />
                             </div>
                             <span className={`flex-1 text-sm font-medium ${isCollapsed ? 'md:hidden' : ''}`}>{link.label}</span>
                             <span className={`${!isCollapsed && link.badge ? '' : 'hidden'} px-2 py-0.5 text-xs font-bold rounded-full ${
-                                activePage === link.id ? 'bg-gray-700 text-white' : 'bg-gray-800 text-gray-300'
+                                activePage === link.id ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
                             }`}>
                                 {link.badge}
                             </span>
@@ -517,13 +517,13 @@ export default function SharedSidebar({ sidebarOpen, setSidebarOpen, activePage:
                 </nav>
 
                 {/* Pinterest-style Account / User Card Toggle */}
-                <div className="p-3 border-t border-gray-100 bg-gray-50">
+                <div className="p-3 border-t border-gray-200 bg-white">
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => setShowAccountCard(!showAccountCard)}
-                      className={`flex items-center w-full gap-3 p-3 rounded-xl transition-colors ${isCollapsed ? 'justify-center' : ''} hover:bg-gray-800`}
+                      className={`flex items-center w-full gap-3 p-3 rounded-xl transition-colors ${isCollapsed ? 'justify-center' : ''} hover:bg-gray-100`}
                     >
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center shadow-sm text-white font-bold flex-shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm text-gray-900 font-bold flex-shrink-0 border border-gray-300">
                         <span className="text-sm font-semibold">{(session?.user?.name || session?.user?.email || 'U')[0]?.toUpperCase()}</span>
                       </div>
                       <div className={`flex-1 text-left ${isCollapsed ? 'md:hidden' : ''}`}>
@@ -536,20 +536,20 @@ export default function SharedSidebar({ sidebarOpen, setSidebarOpen, activePage:
                 </div>
 
                 {/* Pinterest-style Collapse Button at Bottom */}
-                <div className="hidden md:block p-3 border-t border-gray-100 bg-gray-50">
+                <div className="hidden md:block p-3 border-t border-gray-200 bg-white">
                   <button
                     onClick={() => setIsCollapsed?.(!isCollapsed)}
-                    className="w-full flex items-center justify-center gap-2 p-3 rounded-xl hover:bg-gray-800 transition-colors text-gray-300 font-medium"
+                    className="w-full flex items-center justify-center gap-2 p-3 rounded-xl hover:bg-gray-100 transition-colors text-gray-700 font-medium"
                     aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                   >
                     {isCollapsed ? (
                       <>
-                        <ChevronsRight className="w-5 h-5 text-red-600" />
+                        <ChevronsRight className="w-5 h-5 text-blue-600" />
                       </>
                     ) : (
                       <>
-                        <span className="text-sm text-red-700 font-medium">Collapse</span>
-                        <ChevronsLeft className="w-5 h-5 text-red-600" />
+                        <span className="text-sm text-blue-700 font-medium">Collapse</span>
+                        <ChevronsLeft className="w-5 h-5 text-blue-600" />
                       </>
                     )}
                   </button>
@@ -558,7 +558,7 @@ export default function SharedSidebar({ sidebarOpen, setSidebarOpen, activePage:
                 {/* Tooltip for collapsed icons */}
                 {tooltip && (
                     <div style={{ position: 'fixed', top: tooltip.top, left: tooltip.left, transform: 'translateY(-50%)' }} className="z-50">
-                        <div className="bg-gray-900 text-white px-3 py-2 rounded-lg shadow-lg text-sm whitespace-nowrap">
+                        <div className="bg-white text-gray-900 px-3 py-2 rounded-lg shadow-lg text-sm whitespace-nowrap border border-gray-200">
                             <div className="font-semibold text-xs">{tooltip.label}</div>
                         </div>
                     </div>
@@ -580,28 +580,28 @@ export default function SharedSidebar({ sidebarOpen, setSidebarOpen, activePage:
                     style={{ maxHeight: 'calc(100vh - 2rem)' }}
                   >
                     {/* Header */}
-                    <div className="p-4 bg-gradient-to-b from-gray-800 to-black border-b border-gray-700 flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-white font-semibold text-lg shadow-md">
+                    <div className="p-4 bg-white border-b border-gray-200 flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-gray-900 font-semibold text-lg shadow-md border border-gray-300">
                         { (session?.user?.name || session?.user?.email || 'U')[0]?.toUpperCase() }
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-900 truncate">{session?.user?.name || 'Creator'}</p>
-                        <p className="text-xs text-gray-500 truncate">{session?.user?.email || '—'}</p>
+                        <p className="text-xs text-gray-600 truncate">{session?.user?.email || '—'}</p>
                       </div>
                       <button 
                         onClick={() => setShowAccountCard(false)}
-                        className="p-1 hover:bg-gray-700 rounded-full transition-colors"
+                        className="p-1 hover:bg-gray-100 rounded-full transition-colors"
                       >
                         <X className="w-4 h-4 text-gray-600" />
                       </button>
                     </div>
 
                     {/* Pinterest-style Credits Display */}
-                    <div className="px-4 py-3 bg-gradient-to-r from-gray-800 to-black border-b border-gray-700">
+                    <div className="px-4 py-3 bg-white border-b border-gray-200">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center shadow-sm">
-                            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-gray-300">
+                            <svg className="w-4 h-4 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
                               <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
                               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd"/>
                             </svg>
@@ -615,7 +615,7 @@ export default function SharedSidebar({ sidebarOpen, setSidebarOpen, activePage:
                         </div>
                         <button
                           onClick={() => { setShowAccountCard(false); router.push('/pricing') }}
-                          className="px-3 py-1.5 bg-gradient-to-r from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 text-white text-xs font-medium rounded-lg shadow-sm transition-all"
+                          className="px-3 py-1.5 bg-white hover:bg-gray-50 text-gray-900 text-xs font-medium rounded-lg shadow-sm border border-gray-300 transition-all"
                         >
                           Get More
                         </button>
@@ -624,12 +624,12 @@ export default function SharedSidebar({ sidebarOpen, setSidebarOpen, activePage:
 
                     {/* Menu items */}
                     <div className="p-3 space-y-1">
-                      <Link href="/profile" onClick={() => setShowAccountCard(false)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 transition-colors text-left">
+                      <Link href="/profile" onClick={() => setShowAccountCard(false)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors text-left">
                         <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.73 6.879 1.98M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         <span className="text-sm font-medium text-gray-900">Profile</span>
                       </Link>
 
-                      <Link href="/settings" onClick={() => setShowAccountCard(false)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50 transition-colors text-left">
+                      <Link href="/settings" onClick={() => setShowAccountCard(false)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-blue-50 transition-colors text-left">
                         <Settings className="w-5 h-5 text-gray-700" />
                         <span className="text-sm font-medium text-gray-900">Settings</span>
                       </Link>

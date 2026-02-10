@@ -40,7 +40,7 @@ console.log('\n--- Summary ---');
 if (missing.length > 0) {
   console.log(`Missing ${missing.length} required environment variables:`);
   missing.forEach(v => console.log(`  - ${v}`));
-  console.log('\nPlease add these to your .env.local file and Netlify environment variables');
+  console.log('\nPlease add these to your .env.local file and Vercel environment variables');
   process.exit(1);
 } else {
   console.log('✅ All required environment variables are present');

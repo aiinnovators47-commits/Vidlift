@@ -15,12 +15,12 @@ export async function POST(request: Request) {
 
     console.log('🔄 Manually triggering hourly email scheduler...');
 
-    // Call the Netlify function
-    const netlifyFunctionUrl = process.env.NETLIFY_FUNCTIONS_URL 
-      ? `${process.env.NETLIFY_FUNCTIONS_URL}/hourly-email-scheduler`
-      : 'http://localhost:8888/.netlify/functions/hourly-email-scheduler';
+    // Call the Vercel API route directly
+    const vercelApiUrl = process.env.NEXT_PUBLIC_APP_URL 
+      ? `${process.env.NEXT_PUBLIC_APP_URL}/api/challenges/send-reminder-emails`
+      : 'http://localhost:3000/api/challenges/send-reminder-emails';
 
-    const response = await fetch(netlifyFunctionUrl, {
+    const response = await fetch(vercelApiUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${cronSecret}`,

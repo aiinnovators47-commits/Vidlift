@@ -1,129 +1,272 @@
-"use client"
+'use client';
 
-import React, { useState } from 'react'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Loader2, FileText } from 'lucide-react'
-import Image from 'next/image'
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { 
+  Tag, 
+  FileText, 
+  ExternalLink, 
+  Loader2, 
+  Sparkles,
+  PlayIcon
+} from 'lucide-react';
+import { toast } from 'sonner';
 
-interface VideoWithMissingDescription {
-  id: string
-  title: string
-  thumbnail: string
-  publishedAt: string
-  description: string
-  suggestedDescription: string
+interface MissingContentVideo {
+  id: string;
+  video_id: string;
+  title: string;
+  description: string | null;
+  tags: string[] | null;
+  thumbnail_url: string;
+  published_at: string;
+  channel_id: string;
+  tags_suggestions?: string[];
+  description_suggestions?: string[];
 }
 
-interface AddMissingDescriptionsCardProps {
-  videos?: VideoWithMissingDescription[]
-}
+export default function AddMissingDescriptionsCard() {
+  const [videos, setVideos] = useState<MissingContentVideo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [suggestionsLoading, setSuggestionsLoading] = useState<Record<string, boolean>>({});
 
-export default function AddMissingDescriptionsCard({ videos = [] }: AddMissingDescriptionsCardProps) {
-  const [selectedVideo, setSelectedVideo] = useState<VideoWithMissingDescription | null>(null)
-  const [publishing, setPublishing] = useState(false)
-  const [showMore, setShowMore] = useState(false)
+  useEffect(() => {
+    fetchMissingContentVideos();
+  }, []);
 
-  if (videos.length === 0) {
-    return null
+  const fetchMissingContentVideos = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/dashboard/videos-missing-content');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch videos with missing content');
+      }
+      
+      const data = await response.json();
+      setVideos(data.videos || []);
+    } catch (error) {
+      console.error('Error fetching missing content videos:', error);
+      toast.error('Failed to load videos with missing content');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateSuggestions = async (videoId: string) => {
+    try {
+      setSuggestionsLoading(prev => ({ ...prev, [videoId]: true }));
+      
+      // In a real implementation, this would call an AI service to generate suggestions
+      // For now, we'll simulate this with a mock response
+      const response = await fetch(`/api/ai/suggestions?videoId=${videoId}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate suggestions');
+      }
+      
+      const data = await response.json();
+      
+      // Update the video with the new suggestions
+      setVideos(prev => prev.map(video => 
+        video.id === videoId 
+          ? { ...video, tags_suggestions: data.tags, description_suggestions: data.description }
+          : video
+      ));
+      
+      toast.success('Suggestions generated successfully!');
+    } catch (error) {
+      console.error('Error generating suggestions:', error);
+      toast.error('Failed to generate suggestions');
+    } finally {
+      setSuggestionsLoading(prev => ({ ...prev, [videoId]: false }));
+    }
+  };
+
+  const handleApplySuggestions = (video: MissingContentVideo) => {
+    // This would open a modal or navigate to the video editing page
+    // where the user can apply the suggested tags/description
+    toast.info('Opening video for tag/description editing...');
+    console.log('Applying suggestions for video:', video);
+  };
+
+  if (loading) {
+    return (
+      <Card className="overflow-hidden">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-blue-500" />
+            Missing Tags & Descriptions
+          </CardTitle>
+          <CardDescription>
+            Videos from your connected channels that need tags or descriptions
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="flex items-center space-x-4 p-2 border rounded-md">
+                <Skeleton className="h-16 w-24 rounded-md" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <div className="flex space-x-2">
+                    <Skeleton className="h-6 w-16" />
+                    <Skeleton className="h-6 w-16" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
-  const currentVideo = selectedVideo || videos[0]
-  const descriptionPreview = showMore 
-    ? currentVideo.suggestedDescription 
-    : currentVideo.suggestedDescription.slice(0, 200) + '...'
-
-  const handlePublishDescription = async () => {
-    if (!currentVideo) return
-
-    setPublishing(true)
-    try {
-      const response = await fetch('/api/youtube/update-video', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          videoId: currentVideo.id,
-          description: currentVideo.suggestedDescription
-        })
-      })
-
-      if (response.ok) {
-        // Refresh or update UI
-        window.location.reload()
-      }
-    } catch (error) {
-      console.error('Error publishing description:', error)
-    } finally {
-      setPublishing(false)
-    }
+  if (videos.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-blue-500" />
+            Missing Tags & Descriptions
+          </CardTitle>
+          <CardDescription>
+            All your videos have tags and descriptions!
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Great job! All videos from your connected channels have tags and descriptions.
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
-    <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 border border-slate-700/50 shadow-xl">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <FileText className="w-5 h-5 text-blue-400" />
-          <h3 className="text-lg font-semibold text-white">Add Missing Descriptions</h3>
-        </div>
-        <span className="text-sm text-slate-400">• 15m ago</span>
-      </div>
-
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Video Thumbnail */}
-        <div className="relative w-full lg:w-64 h-36 bg-slate-800 rounded-xl overflow-hidden flex-shrink-0 border border-slate-700/50">
-          {currentVideo.thumbnail && currentVideo.thumbnail !== 'https://i.ytimg.com/vi/sample/maxresdefault.jpg' ? (
-            <Image
-              src={currentVideo.thumbnail}
-              alt={currentVideo.title}
-              fill
-              className="object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-800">
-              <FileText className="w-12 h-12 text-slate-500" />
+    <Card className="overflow-hidden">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-blue-500" />
+          Missing Tags & Descriptions
+        </CardTitle>
+        <CardDescription>
+          {videos.length} video{videos.length !== 1 ? 's' : ''} from your connected channels need tags or descriptions
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {videos.slice(0, 5).map((video) => (
+            <div key={video.id} className="flex items-start space-x-4 p-3 border rounded-md hover:bg-muted/50 transition-colors">
+              <div className="relative flex-shrink-0">
+                <img
+                  src={video.thumbnail_url || '/placeholder-video.jpg'}
+                  alt={video.title}
+                  className="w-24 h-16 object-cover rounded-md"
+                />
+                <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md">
+                  <PlayIcon className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium truncate">{video.title || 'Untitled Video'}</h3>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(video.published_at).toLocaleDateString()}
+                </p>
+                
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {!video.tags || video.tags.length === 0 ? (
+                    <Badge variant="outline" className="border-destructive/50 text-destructive">
+                      <Tag className="h-3 w-3 mr-1" />
+                      Missing Tags
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary">
+                      <Tag className="h-3 w-3 mr-1" />
+                      Has Tags
+                    </Badge>
+                  )}
+                  
+                  {!video.description ? (
+                    <Badge variant="outline" className="border-destructive/50 text-destructive">
+                      <FileText className="h-3 w-3 mr-1" />
+                      Missing Description
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary">
+                      <FileText className="h-3 w-3 mr-1" />
+                      Has Description
+                    </Badge>
+                  )}
+                </div>
+                
+                <div className="mt-3 flex items-center gap-2">
+                  {video.tags_suggestions || video.description_suggestions ? (
+                    <>
+                      <Button
+                        size="sm"
+                        onClick={() => handleApplySuggestions(video)}
+                        className="h-8"
+                      >
+                        Apply Suggestions
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.open(`https://youtu.be/${video.video_id}`, '_blank')}
+                        className="h-8"
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        View
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        size="sm"
+                        onClick={() => generateSuggestions(video.id)}
+                        disabled={suggestionsLoading[video.id]}
+                        className="h-8"
+                      >
+                        {suggestionsLoading[video.id] ? (
+                          <>
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-3 w-3 mr-1" />
+                            Generate AI Suggestions
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.open(`https://youtu.be/${video.video_id}`, '_blank')}
+                        className="h-8"
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        View
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
-          )}
-        </div>
-
-        {/* Description Section */}
-        <div className="flex-1">
-          <h4 className="font-medium text-white mb-4 text-base">{currentVideo.title}</h4>
+          ))}
           
-          {/* Description Preview */}
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 mb-4">
-            <p className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">
-              {descriptionPreview}
+          {videos.length > 5 && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Showing 5 of {videos.length} videos with missing content
             </p>
-          </div>
-
-          {/* Show More/Less */}
-          {currentVideo.suggestedDescription.length > 200 && (
-            <button
-              onClick={() => setShowMore(!showMore)}
-              className="text-sm text-slate-400 hover:text-white mb-4 inline-flex items-center gap-1 transition-colors"
-            >
-              <span className={`text-xs transition-transform ${showMore ? 'rotate-180' : ''}`}>▼</span>
-              {showMore ? 'Show less' : 'Show more'}
-            </button>
           )}
-
-          {/* Publish Button */}
-          <Button
-            onClick={handlePublishDescription}
-            disabled={publishing}
-            className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-xl font-medium shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            {publishing ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Publishing...
-              </>
-            ) : (
-              'Publish description'
-            )}
-          </Button>
         </div>
-      </div>
-    </div>
-  )
+      </CardContent>
+    </Card>
+  );
 }

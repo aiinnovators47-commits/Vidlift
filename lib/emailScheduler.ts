@@ -72,7 +72,7 @@ let totalErrors = 0
 
 /**
  * Main function: Check and send interval emails
- * Runs every minute, finds users eligible for 2-minute interval emails
+ * Runs every hour (to comply with Vercel free plan), finds users eligible for configurable interval emails
  */
 async function checkAndSendIntervalEmails() {
   if (!schedulerRunning) {
@@ -95,10 +95,8 @@ async function checkAndSendIntervalEmails() {
     // 4. (last_interval_email_sent IS NULL OR last_interval_email_sent < NOW() - interval_minutes)
     // 5. Challenge not expired (started_at + duration still in future)
 
-    // Check for challenges that need emails (using 60 minutes as default for now)
-    // In the future, we can make this more dynamic per challenge
-
-    const queryResult = await supabaseClient
+    // First, get all interval-enabled challenges
+    const { data: allIntervalChallenges, error: allChallengesError } = await supabaseClient
       .from('user_challenges')
       .select(`
         id,
@@ -124,21 +122,33 @@ async function checkAndSendIntervalEmails() {
       .eq('status', 'active')
       .eq('interval_email_enabled', true)
       .eq('email_notifications_enabled', true)
-      .or(`last_interval_email_sent.is.null,last_interval_email_sent.lt.${getTimestampMinutesAgo(60)}`)
-    
-    const eligibleChallenges = queryResult.data as ChallengeWithEmail[]
-    const queryError = queryResult.error
 
-    if (queryError) {
-      console.error('❌ Database query error:', queryError)
+    if (allChallengesError) {
+      console.error('❌ Database query error:', allChallengesError)
       totalErrors++
       return
     }
 
-    if (!eligibleChallenges || eligibleChallenges.length === 0) {
-      console.log('✅ No challenges need interval emails right now')
+    if (!allIntervalChallenges || allIntervalChallenges.length === 0) {
+      console.log('✅ No challenges have interval emails enabled')
       return
     }
+
+    // Filter challenges that are actually due for an email
+    const eligibleChallenges = (allIntervalChallenges as ChallengeWithEmail[]).filter(challenge => {
+      const intervalMinutes = challenge.interval_minutes || 1440 // Default to 1440 minutes (24 hours) to comply with Vercel free plan
+      const lastSent = challenge.last_interval_email_sent
+      
+      // If never sent, eligible
+      if (!lastSent) return true
+      
+      // If last sent more than interval_minutes ago, eligible
+      const lastSentTime = new Date(lastSent).getTime()
+      const intervalMs = intervalMinutes * 60 * 1000
+      const timeSinceLast = Date.now() - lastSentTime
+      
+      return timeSinceLast >= intervalMs
+    })
 
     console.log(`📧 Found ${eligibleChallenges.length} challenge(s) needing emails`)
 
@@ -394,8 +404,8 @@ export function startEmailScheduler() {
 
   schedulerRunning = true
   console.log('🚀 Email Scheduler STARTED')
-  console.log('⏰ Check interval: Every 1 minute')
-  console.log('📧 Email interval: Every 2 minutes (configurable per challenge)')
+  console.log('⏰ Check interval: Every 1 minute (when running as standalone)')
+  console.log('📧 Email interval: Every 24 hours by default (configurable per challenge, Vercel free plan compliant)')
   console.log('🖥️  Platform: Windows-compatible (node-cron)')
   console.log('─'.repeat(60))
 

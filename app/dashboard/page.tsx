@@ -60,6 +60,16 @@ interface LatestVideo {
   titleScore?: number
 }
 
+// Define a compatible type for videos with missing content that includes all required fields
+interface VideoWithMissingContent extends LatestVideo {
+  hasTags?: boolean;
+  hasDescription?: boolean;
+  tags?: string[];
+  description?: string;
+  suggestedTags?: string[];
+  suggestedDescription?: string;
+}
+
 interface VideoStats {
   views: number;
   likes: number;
@@ -200,7 +210,18 @@ export default function DashboardPage() {
   const suggestionTimerRef = useRef<number | null>(null)
   const addTagInputRef = useRef<HTMLInputElement | null>(null)
   const [publishError, setPublishError] = useState('')
-  const [videosWithoutTags, setVideosWithoutTags] = useState<LatestVideo[]>([])
+  // Define a compatible type for videos with missing content that includes all required fields
+  interface VideoWithMissingContent extends LatestVideo {
+    hasTags?: boolean;
+    hasDescription?: boolean;
+    tags?: string[];
+    description?: string;
+    suggestedTags?: string[];
+    suggestedDescription?: string;
+  }
+  
+  const [videosWithoutTags, setVideosWithoutTags] = useState<VideoWithMissingContent[]>([])
+  const [videosWithoutDescriptions, setVideosWithoutDescriptions] = useState<VideoWithMissingContent[]>([])
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
 
   // Challenge states
@@ -706,29 +727,46 @@ export default function DashboardPage() {
       
       setLoadingVideo(true)
       try {
-        // Fetch videos server-side; server will use stored tokens or API key fallback
-        const response = await fetch(`/api/youtube/best-videos?channelId=${youtubeChannel.id}`, {
-          method: 'GET',
-          headers: { 'Cache-Control': 'max-age=300' }
-        })
+        // Fetch videos with missing content using new API
+        const [videosResponse, tagsResponse, descResponse] = await Promise.all([
+          fetch(`/api/youtube/best-videos?channelId=${youtubeChannel.id}`, {
+            method: 'GET',
+            headers: { 'Cache-Control': 'max-age=300' }
+          }),
+          fetch(`/api/youtube/videos-missing-content?channelId=${youtubeChannel.id}&type=tags&maxResults=5`, {
+            method: 'GET',
+            headers: { 'Cache-Control': 'max-age=300' }
+          }),
+          fetch(`/api/youtube/videos-missing-content?channelId=${youtubeChannel.id}&type=descriptions&maxResults=5`, {
+            method: 'GET',
+            headers: { 'Cache-Control': 'max-age=300' }
+          })
+        ])
 
-        if (!response.ok) {
-          const err = await response.json().catch(() => ({}))
+        if (!videosResponse.ok) {
+          const err = await videosResponse.json().catch(() => ({}))
           console.error('Failed to fetch videos:', err)
           setLoadingVideo(false)
           setLatestVideo(null)
           setVideosWithoutTags([])
+          setVideosWithoutDescriptions([])
           return
         }
 
-        let data = await response.json()
+        const [videosData, tagsData, descData] = await Promise.all([
+          videosResponse.json(),
+          tagsResponse.json(),
+          descResponse.json()
+        ])
         
-        console.log('Fetched videos data:', data)
+        console.log('Fetched videos data:', videosData)
+        console.log('Fetched tags data:', tagsData)
+        console.log('Fetched descriptions data:', descData)
         
         // Check if we have videos in the response
-        if (data.videos && Array.isArray(data.videos) && data.videos.length > 0) {
+        if (videosData.videos && Array.isArray(videosData.videos) && videosData.videos.length > 0) {
           // set latest video to the first item
-          const video = data.videos[0]
+          const video = videosData.videos[0]
           setLatestVideo({
             id: video.id || '',
             title: video.title || 'Untitled Video',
@@ -741,22 +779,110 @@ export default function DashboardPage() {
           try { generateTagsLocally(video.title || '') } catch {}
 
           // Filter videos that don't have tags yet
-          const videosNoTags = data.videos
-            .filter((v: any) => !v.tags || v.tags.length === 0)
-            .map((v: any) => ({
-              id: v.id || '',
-              title: v.title || 'Untitled',
-              thumbnail: v.thumbnail || '',
-              publishedAt: v.publishedAt || new Date().toISOString(),
-              viewCount: v.viewCount || 0,
-              titleScore: v.titleScore || 0
-            }))
+          const videosNoTags = tagsData.videos || []
+          const videosNoDesc = descData.videos || []
+                    
+          // Enhance videos with AI-generated suggestions
+          const enhancedVideosNoTags = await Promise.all(
+            videosNoTags.map(async (video: any) => {
+              try {
+                const response = await fetch('/api/gemini/suggest-tags', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    title: video.title,
+                    description: video.description || '',
+                    videoId: video.id
+                  })
+                });
+                
+                if (response.ok) {
+                  const data = await response.json();
+                  return {
+                    id: video.id || '',
+                    title: video.title || 'Untitled Video',
+                    thumbnail: video.thumbnail || '',
+                    publishedAt: video.publishedAt || new Date().toISOString(),
+                    viewCount: video.viewCount || 0,
+                    hasTags: Array.isArray(video.tags) && video.tags.length > 0,
+                    hasDescription: Boolean(video.description && video.description.trim().length > 0),
+                    tags: video.tags || [],
+                    description: video.description || '',
+                    suggestedTags: data.tags || []
+                  };
+                }
+              } catch (error) {
+                console.error('Error fetching suggested tags:', error);
+              }
+              
+              return {
+                id: video.id || '',
+                title: video.title || 'Untitled Video',
+                thumbnail: video.thumbnail || '',
+                publishedAt: video.publishedAt || new Date().toISOString(),
+                viewCount: video.viewCount || 0,
+                hasTags: Array.isArray(video.tags) && video.tags.length > 0,
+                hasDescription: Boolean(video.description && video.description.trim().length > 0),
+                tags: video.tags || [],
+                description: video.description || '',
+                suggestedTags: []
+              };
+            })
+          );
+          
+          const enhancedVideosNoDesc = await Promise.all(
+            videosNoDesc.map(async (video: any) => {
+              try {
+                const response = await fetch('/api/gemini/suggest-description', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    title: video.title,
+                    tags: video.tags || [],
+                    videoId: video.id
+                  })
+                });
+                
+                if (response.ok) {
+                  const data = await response.json();
+                  return {
+                    id: video.id || '',
+                    title: video.title || 'Untitled Video',
+                    thumbnail: video.thumbnail || '',
+                    publishedAt: video.publishedAt || new Date().toISOString(),
+                    viewCount: video.viewCount || 0,
+                    hasTags: Array.isArray(video.tags) && video.tags.length > 0,
+                    hasDescription: Boolean(video.description && video.description.trim().length > 0),
+                    tags: video.tags || [],
+                    description: video.description || '',
+                    suggestedDescription: data.description || ''
+                  };
+                }
+              } catch (error) {
+                console.error('Error fetching suggested description:', error);
+              }
+              
+              return {
+                id: video.id || '',
+                title: video.title || 'Untitled Video',
+                thumbnail: video.thumbnail || '',
+                publishedAt: video.publishedAt || new Date().toISOString(),
+                viewCount: video.viewCount || 0,
+                hasTags: Array.isArray(video.tags) && video.tags.length > 0,
+                hasDescription: Boolean(video.description && video.description.trim().length > 0),
+                tags: video.tags || [],
+                description: video.description || '',
+                suggestedDescription: ''
+              };
+            })
+          );
 
-          setVideosWithoutTags(videosNoTags)
+          setVideosWithoutTags(enhancedVideosNoTags)
+          setVideosWithoutDescriptions(enhancedVideosNoDesc)
           setCurrentVideoIndex(0)
-
+          
           // compute top 3 videos by viewCount
-          const sorted = data.videos
+          const sorted = videosData.videos
             .slice()
             .sort((a: any, b: any) => (parseInt(b.viewCount || 0, 10) || 0) - (parseInt(a.viewCount || 0, 10) || 0))
           const top3 = sorted.slice(0, 3).map((v: any) => ({
@@ -1762,34 +1888,38 @@ export default function DashboardPage() {
             {/* Add Missing Tags Card */}
             <div className="mb-8">
               <AddMissingTagsCard
-                videos={[
-                  {
-                    id: latestVideo?.id || 'sample-video-1',
-                    title: latestVideo?.title || 'how to start tech channel',
-                    thumbnail: latestVideo?.thumbnail || 'https://i.ytimg.com/vi/sample/maxresdefault.jpg',
-                    publishedAt: latestVideo?.publishedAt || new Date().toISOString(),
-                    tags: [],
-                    suggestedTags: suggestedTags.length > 0 
-                      ? suggestedTags.slice(0, 5).map(t => t.tag) 
-                      : ['how to start tech channel', 'tech channel tips', 'YouTube for tech', 'tech niche', 'video creation']
-                  }
-                ]}
+                videos={videosWithoutTags.map(video => ({
+                  id: video.id || '',
+                  title: video.title || 'Untitled Video',
+                  thumbnail: video.thumbnail || '',
+                  publishedAt: video.publishedAt || new Date().toISOString(),
+                  viewCount: video.viewCount || 0,
+                  hasTags: Array.isArray(video.tags) && video.tags.length > 0,
+                  hasDescription: Boolean(video.description && video.description.trim().length > 0),
+                  tags: video.tags || [],
+                  description: video.description || '',
+                  suggestedTags: video.suggestedTags || [],
+                  suggestedDescription: video.suggestedDescription || ''
+                }))}
               />
             </div>
 
             {/* Add Missing Descriptions Card */}
             <div className="mb-8">
               <AddMissingDescriptionsCard
-                videos={[
-                  {
-                    id: latestVideo?.id || 'sample-video-1',
-                    title: latestVideo?.title || 'how to start tech channel',
-                    thumbnail: latestVideo?.thumbnail || 'https://i.ytimg.com/vi/sample/maxresdefault.jpg',
-                    publishedAt: latestVideo?.publishedAt || new Date().toISOString(),
-                    description: '',
-                    suggestedDescription: "Are you passionate about technology and want to share your knowledge with the world? Starting a tech channel can be a great way to do so. In this video, we'll guide you through the process of starting a successful tech..."
-                  }
-                ]}
+                videos={videosWithoutDescriptions.map(video => ({
+                  id: video.id || '',
+                  title: video.title || 'Untitled Video',
+                  thumbnail: video.thumbnail || '',
+                  publishedAt: video.publishedAt || new Date().toISOString(),
+                  viewCount: video.viewCount || 0,
+                  hasTags: Array.isArray(video.tags) && video.tags.length > 0,
+                  hasDescription: Boolean(video.description && video.description.trim().length > 0),
+                  tags: video.tags || [],
+                  description: video.description || '',
+                  suggestedTags: video.suggestedTags || [],
+                  suggestedDescription: video.suggestedDescription || ''
+                }))}
               />
             </div>
 

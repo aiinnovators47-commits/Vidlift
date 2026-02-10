@@ -163,16 +163,6 @@ async function completeSystemCheck() {
 
   const fs = require('fs');
   
-  // Check netlify.toml
-  if (fs.existsSync('netlify.toml')) {
-    const netlifyConfig = fs.readFileSync('netlify.toml', 'utf8');
-    if (netlifyConfig.includes('hourly-email-scheduler')) {
-      console.log('   ✅ Netlify cron configured (netlify.toml)');
-    } else {
-      console.log('   ⚠️  Netlify cron NOT configured in netlify.toml');
-    }
-  }
-
   // Check vercel.json
   if (fs.existsSync('vercel.json')) {
     const vercelConfig = fs.readFileSync('vercel.json', 'utf8');
@@ -184,7 +174,6 @@ async function completeSystemCheck() {
   }
 
   console.log('\n   📝 Note: Hourly emails only work when DEPLOYED to:');
-  console.log('      - Netlify (with scheduled functions)');
   console.log('      - Vercel (with cron jobs)\n');
 
   // 6. Final Summary

@@ -44,7 +44,7 @@ export async function POST(req: Request) {
       .eq('status', 'active')
       .eq('interval_email_enabled', true)
       .eq('email_notifications_enabled', true)
-      .or('last_interval_email_sent.is.null,last_interval_email_sent.lt.' + getTimestampMinutesAgo(60))
+      .or('last_interval_email_sent.is.null,last_interval_email_sent.lt.' + getTimestampMinutesAgo(1440)) // At least 24 hours for Vercel free plan
 
     if (queryError) {
       console.error('❌ Database query error:', queryError)

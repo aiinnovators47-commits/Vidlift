@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Netlify-specific optimizations
+  // Vercel-specific optimizations
   output: 'standalone',
   distDir: '.next',
   
@@ -39,7 +39,7 @@ const nextConfig = {
       };
     }
     
-    // Exclude large modules from server bundle for Netlify
+    // Exclude large modules from server bundle for Vercel
     if (isServer) {
       config.externals = [
         ...(config.externals || []),
