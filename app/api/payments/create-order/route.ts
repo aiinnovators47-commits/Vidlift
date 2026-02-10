@@ -3,14 +3,16 @@ import { getServerSession } from 'next-auth'
 import Razorpay from 'razorpay'
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Missing Supabase credentials')
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase credentials')
+  }
+
+  return createClient(supabaseUrl, supabaseKey)
 }
-
-const supabase = createClient(supabaseUrl!, supabaseKey!)
 
 // Initialize Razorpay only if credentials are available
 let razorpay: Razorpay | null = null
@@ -85,6 +87,7 @@ export async function POST(req: NextRequest) {
     })
 
     // Store order in database
+    const supabase = getSupabaseClient()
     const { data, error } = await supabase
       .from('payments')
       .insert({

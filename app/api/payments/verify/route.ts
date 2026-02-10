@@ -3,14 +3,16 @@ import { getServerSession } from 'next-auth'
 import crypto from 'crypto'
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Missing Supabase credentials')
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase credentials')
+  }
+
+  return createClient(supabaseUrl, supabaseKey)
 }
-
-const supabase = createClient(supabaseUrl!, supabaseKey!)
 
 const planCredits = {
   starter: 180,
@@ -49,6 +51,8 @@ export async function POST(req: NextRequest) {
 
     // Get plan credits
     const credits = planCredits[planId as keyof typeof planCredits] || 180
+
+    const supabase = getSupabaseClient()
 
     // Update payment status in database
     const { error: updatePaymentError } = await supabase

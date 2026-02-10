@@ -3,17 +3,16 @@ import { getServerSession } from "next-auth"
 import { createClient } from "@supabase/supabase-js"
 import { INITIAL_CREDITS } from "@/models/Credit"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error("Missing Supabase credentials:", { 
-    hasUrl: !!supabaseUrl, 
-    hasKey: !!supabaseKey 
-  })
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error("Missing Supabase credentials")
+  }
+
+  return createClient(supabaseUrl, supabaseKey)
 }
-
-const supabase = createClient(supabaseUrl!, supabaseKey!)
 
 // GET: Get user credits
 export async function GET(req: NextRequest) {
@@ -25,6 +24,7 @@ export async function GET(req: NextRequest) {
     }
 
     const userEmail = session.user.email
+    const supabase = getSupabaseClient()
 
     // Check if user credits exist
     const { data: existingCredit, error: fetchError } = await supabase
@@ -91,6 +91,7 @@ export async function POST(req: NextRequest) {
     }
 
     const userEmail = session.user.email
+    const supabase = getSupabaseClient()
 
     // Get current credits
     const { data: currentCredit, error: fetchError } = await supabase

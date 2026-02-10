@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Missing Supabase credentials')
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase credentials')
+  }
+
+  return createClient(supabaseUrl, supabaseKey)
 }
-
-const supabase = createClient(supabaseUrl!, supabaseKey!)
 
 // Fetch video stats from YouTube API
 async function fetchVideoStats(videoIds: string[], accessToken: string) {
@@ -50,6 +52,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Create Supabase client at runtime
+    const supabase = getSupabaseClient()
 
     // Fetch updated stats from YouTube
     const videoStats = await fetchVideoStats(videoIds, accessToken)
