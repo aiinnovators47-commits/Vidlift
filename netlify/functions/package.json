@@ -1,0 +1,14 @@
+{
+  "name": "netlify-functions",
+  "version": "1.0.0",
+  "description": "Netlify functions with minimal dependencies",
+  "private": true,
+  "scripts": {},
+  "dependencies": {
+    "@supabase/supabase-js": "^2.23.0",
+    "@netlify/functions": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

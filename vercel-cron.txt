@@ -1,0 +1,17 @@
+# Vercel Cron Jobs Configuration
+# This file defines scheduled cron jobs for challenge reminders
+
+# Hourly reminder emails for users who haven't uploaded today
+# Runs every hour to check for approaching deadlines
+- path: /api/challenges/send-reminder-emails
+  schedule: "0 * * * *"  # Every hour at minute 0
+
+# Daily check for missed uploads and deadline updates
+# Runs every day at 12:01 AM UTC
+- path: /api/challenges/cron/daily-check
+  schedule: "1 0 * * *"  # 12:01 AM UTC daily
+
+# Morning reminder emails
+# Runs every day at 8:00 AM UTC
+- path: /api/challenges/cron/morning-reminder
+  schedule: "0 8 * * *"  # 8:00 AM UTC daily

@@ -1,0 +1,50 @@
+[build]
+  command = "bash scripts/netlify-build.sh"
+  publish = ".next"
+  functions = "netlify/functions"
+
+[functions]
+  directory = "netlify/functions"
+  external_node_modules = ["sharp", "canvas", "@supabase/supabase-js"]
+  node_bundler = "esbuild"
+
+[template.environment]
+  NEXT_PUBLIC_SUPABASE_URL = "Your Supabase URL"
+  SUPABASE_SERVICE_ROLE_KEY = "Your Supabase Service Role Key"
+  SMTP_EMAIL = "Your SMTP email"
+  SMTP_PASSWORD = "Your SMTP password/app-specific password"
+  NEXTAUTH_URL = "Your deployed URL"
+  CRON_SECRET = "Your secure cron secret"
+  NEXT_PUBLIC_APP_URL = "Your deployed URL"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[[plugins]]
+  package = "@netlify/plugin-functions-install-core"
+
+[functions]
+  directory = "netlify/functions"
+  external_node_modules = ["sharp", "canvas", "@supabase/supabase-js"]
+
+# Enable Background Functions (beta)
+[functions."trigger-email-scheduler"]
+  background = true
+
+[functions."hourly-email-scheduler"]
+  background = true
+  schedule = "0 * * * *"  # Run every hour on the hour
+
+# Redirect API routes to serverless functions
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+
+# Set up headers for security
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

@@ -1,0 +1,19 @@
+This is a reference file for the VidIQ-style connect page design.
+
+Key Design Elements:
+1. Clean, centered layout with max-width container
+2. Single card design with red header (YouTube brand color)
+3. Clear value propositions with checkmarks
+4. Simple, professional typography
+5. Minimal decorations, focus on content
+6. Clear CTA buttons
+7. Security messaging
+8. Stats display when connected
+
+The design should be:
+- Professional and trustworthy
+- Easy to understand
+- Mobile-responsive
+- Focused on conversion
+- Clean white backgrounds
+- Red accent color (YouTube brand)

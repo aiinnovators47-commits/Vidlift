@@ -1,0 +1,60 @@
+{
+  "crons": [
+    {
+      "path": "/api/challenges/cron/upload-reminder",
+      "schedule": "0 6 * * *",
+      "headers": {
+        "Authorization": "Bearer ${CRON_SECRET}"
+      }
+    },
+    {
+      "path": "/api/challenges/cron/upload-reminder",
+      "schedule": "0 * * * *",
+      "headers": {
+        "Authorization": "Bearer ${CRON_SECRET}"
+      }
+    },
+    {
+      "path": "/api/challenges/cron/morning-reminder",
+      "schedule": "0 7 * * *",
+      "headers": {
+        "Authorization": "Bearer ${CRON_SECRET}"
+      }
+    },
+    {
+      "path": "/api/challenges/cron/daily-check",
+      "schedule": "0 */6 * * *",
+      "headers": {
+        "Authorization": "Bearer ${CRON_SECRET}"
+      }
+    },
+    {
+      "path": "/api/challenges/cron/process-notifications", 
+      "schedule": "0 * * * *",
+      "headers": {
+        "Authorization": "Bearer ${CRON_SECRET}"
+      }
+    },
+    {
+      "path": "/api/challenge-notifications/cron",
+      "schedule": "0 */4 * * *",
+      "headers": {
+        "Authorization": "Bearer ${CRON_SECRET}"
+      }
+    },
+    {
+      "path": "/api/challenge-uploads/auto-detect",
+      "schedule": "0 * * * *",
+      "headers": {
+        "Authorization": "Bearer ${CRON_SECRET}"
+      }
+    },
+    {
+      "path": "/api/challenges/send-reminder-emails",
+      "schedule": "0 * * * *",
+      "headers": {
+        "Authorization": "Bearer ${CRON_SECRET}"
+      }
+    }
+  ]
+}
